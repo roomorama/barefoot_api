@@ -1,0 +1,4 @@
+--colour
+--backtrace
+-d
+--tag ~remote_call

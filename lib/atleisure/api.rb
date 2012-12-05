@@ -1,5 +1,7 @@
 module Atleisure
   class API
+    include CoreExtensions
+
     def initialize(user, password)
       @user = user
       @password = password
@@ -96,10 +98,11 @@ module Atleisure
       raw_result = client.BookingAdditionsV1(params.merge(credentials))
     end
 
-    def place_booking(house_code, start_date, end_date, number_of_guests, customer, price)
+    def place_booking(house_code, start_date, end_date, number_of_guests, customer, price, inquiry_id)
       client = Jimson::Client.new("https://placebookingv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
 
       params = {
+        'WebpartnerBookingCode' => inquiry_id,
         'BookingOrOption' => 'Booking',
         'HouseCode' => house_code,
         'ArrivalDate' => start_date.to_date.to_s,
@@ -108,11 +111,11 @@ module Atleisure
         'NumberOfChildren' => '0',
         'NumberOfBabies' => '0',
         'NumberOfPets' => '0',
-        'WebsiteRentPrice': price,
-        'Test': 'Yes'
+        'WebsiteRentPrice' => price,
+        'Test' => 'Yes'
       }
 
-      cutomer_params = {
+      customer_params = {
         'CustomerSurname' => customer[:surname],
         'CustomerInitials' => customer[:initials],
         'CustomerStreet' => customer[:street],
@@ -125,7 +128,17 @@ module Atleisure
         'CustomerLanguage' => customer[:language]
       }
 
-      raw_result = client.PlaceBookingV1(params.merge(credentials))
+      params.merge!(customer_params).merge!(credentials)
+      params.delete_if { |k,v| v.nil? }
+
+      begin
+        raw_result = client.PlaceBookingV1(params)
+        result = {}
+        raw_result.each{|k,v| result[underscore(k)] = v}
+        symbolize_keys!(result)
+      rescue Exception => e
+        {error: e.message}
+      end
     end
 
     protected
