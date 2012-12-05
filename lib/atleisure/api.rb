@@ -78,6 +78,56 @@ module Atleisure
       result
     end
 
+    # Retrieve the additions before a booking
+    def booking_additions(house_code, start_date, end_date, number_of_guests, customer_country_code)
+      client = Jimson::Client.new("https://checkavailabilityv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
+
+      params = {
+        'HouseCode' => house_code,
+        'ArrivalDate' => start_date.to_date.to_s,
+        'DepartureDate' => end_date.to_date.to_s,
+        'NumberOfAdults' => number_of_guests,
+        'NumberOfChildren' => '0',
+        'NumberOfBabies' => '0',
+        'NumberOfPets' => '0',
+        'CustomerCountry' => customer_country_code
+      }
+
+      raw_result = client.BookingAdditionsV1(params.merge(credentials))
+    end
+
+    def place_booking(house_code, start_date, end_date, number_of_guests, customer, price)
+      client = Jimson::Client.new("https://placebookingv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
+
+      params = {
+        'BookingOrOption' => 'Booking',
+        'HouseCode' => house_code,
+        'ArrivalDate' => start_date.to_date.to_s,
+        'DepartureDate' => end_date.to_date.to_s,
+        'NumberOfAdults' => number_of_guests,
+        'NumberOfChildren' => '0',
+        'NumberOfBabies' => '0',
+        'NumberOfPets' => '0',
+        'WebsiteRentPrice': price,
+        'Test': 'Yes'
+      }
+
+      cutomer_params = {
+        'CustomerSurname' => customer[:surname],
+        'CustomerInitials' => customer[:initials],
+        'CustomerStreet' => customer[:street],
+        'CustomerHouseNumber' => customer[:house_number],
+        'CustomerZipCode' => customer[:postal_code],
+        'CustomerCity' => customer[:city],
+        'CustomerCountry' => customer[:country],
+        'CustomerTelephone1Number' => customer[:phone_number],
+        'CustomerEmail' => customer[:email],
+        'CustomerLanguage' => customer[:language]
+      }
+
+      raw_result = client.PlaceBookingV1(params.merge(credentials))
+    end
+
     protected
 
     def credentials
