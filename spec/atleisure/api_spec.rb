@@ -76,13 +76,20 @@ describe Atleisure::API do
   end
 
   context "External Service", :remote_call => true do
+    before do
+      @api = Atleisure::API.new(ENV['ATLEISURE_USER'], ENV['ATLEISURE_PASS'])
+    end
+
     it "places a booking" do
-      @api = Atleisure::API.new('lofty', 'tz5ql8')
       @customer = {:surname=>"Hegmann", :initials=>"C", :street=>nil, :postal_code=>nil, :city=>"East Mckaylamouth", :country=>"SG", :email=>"sydni8@email.com", :language=>:en }
       @start_date = Date.new(2013, 1, 14)
       @end_date = Date.new(2013, 1, 16)
 
       response = @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 180, 123)
+    end
+
+    it "fetches details of a booking" do
+      response = @api.details_of_one_booking(174920859)
       debugger
       puts response
     end

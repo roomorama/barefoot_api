@@ -143,6 +143,14 @@ module Atleisure
       end
     end
 
+    def details_of_one_booking(booking_number)
+      client = Jimson::Client.new("https://detailsofonebookingv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
+      params = {
+        'BookingNumber' => booking_number
+      }
+      raw_result = client.DetailsOfOneBookingV1(params.merge(credentials))
+    end
+
     protected
 
     def guess_customer_locale(language)
