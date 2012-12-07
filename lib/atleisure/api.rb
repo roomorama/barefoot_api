@@ -1,3 +1,5 @@
+require 'benchmark'
+
 module Atleisure
   class API
     include CoreExtensions
@@ -125,7 +127,7 @@ module Atleisure
         'CustomerCountry' => customer[:country],
         'CustomerTelephone1Number' => customer[:phone_number],
         'CustomerEmail' => customer[:email],
-        'CustomerLanguage' => customer[:language]
+        'CustomerLanguage' => guess_customer_locale(customer[:language])
       }
 
       params.merge!(customer_params).merge!(credentials)
@@ -136,12 +138,37 @@ module Atleisure
         result = {}
         raw_result.each{|k,v| result[underscore(k)] = v}
         symbolize_keys!(result)
-      rescue Exception => e
+      rescue Jimson::Client::Error::ServerError => e
         {error: e.message}
       end
     end
 
     protected
+
+    def guess_customer_locale(language)
+      languages = %w(NL FR DE EN IT ES PL)
+
+      # Valid values
+      if language && languages.include?(language.upcase)
+        return language.upcase
+      end
+
+      # Try to guess
+      case language
+        when /^en/i
+          'EN'
+        when /^it/i
+          'IT'
+        when /^es/i
+          'ES'
+        when /^fr/i
+          'FR'
+        when /^de/i
+          'DE'
+        else
+          'EN'
+      end
+    end
 
     def credentials
       { 'WebpartnerCode' => @user,

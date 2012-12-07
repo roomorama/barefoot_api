@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'atleisure'
 
 describe Atleisure::API do
@@ -16,7 +17,7 @@ describe Atleisure::API do
       end
 
       it "calls PlaceBookingV1" do
-        @mock_client.should_receive('PlaceBookingV1')
+        @mock_client.should_receive('PlaceBookingV1').and_return({})
         @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
       end
 
@@ -32,9 +33,30 @@ describe Atleisure::API do
 
         @mock_client.should_receive('PlaceBookingV1') do |params|
           expect(params).to_not have_key('CustomerTelephone1Number')
+          {}
         end
 
         @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
+      end
+
+      it "passes a valid locale (NL, FR, DE, EN, IT, ES, PL)" do
+        [
+          ['English', 'EN'], ['english', 'EN'],
+          ['Italiano', 'IT'], ['it', 'IT'],
+          ['Espagnol', 'ES'], ['Español', 'ES'],
+          ['Français', 'FR'], ['French', 'FR'],  ['fr', 'FR'],
+          ['Deutsch', 'DE'], ['de', 'DE'],
+          ['NL', 'NL'],
+          ['fasdfsadf', 'EN'], ['', 'EN'], [nil, 'EN']
+        ].each do |lan_str, expected_locale|
+          @mock_client.should_receive('PlaceBookingV1') do |params|
+            locale = params['CustomerLanguage']
+            expect(locale).to(eq(expected_locale), "#{lan_str} => #{locale} != #{expected_locale}")
+            {}
+          end
+          @customer[:language] = lan_str
+          @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
+        end
       end
 
       it "formats the response" do
