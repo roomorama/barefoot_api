@@ -17,7 +17,7 @@ module Atleisure
     def get_properties
       retry_times(3) do
         client = Jimson::Client.new("https://listofhousesv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
-        logger.info("GET ListOfHousesV1")
+        logger.info("POST ListOfHousesV1")
         result = client.ListOfHousesV1(credentials)
       end
     end
@@ -28,7 +28,7 @@ module Atleisure
       result = nil
       time = Benchmark.measure do
         client = Jimson::Client.new("https://dataofhousesv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
-        logger.info("GET DataOfHousesV1")
+        logger.info("POST DataOfHousesV1")
         result = client.DataOfHousesV1({
           'HouseCodes' => identifiers,
           'Items' => items}.merge(credentials)
@@ -63,7 +63,7 @@ module Atleisure
         #puts "Fetching layout items"
         retry_times(3) do
           client = Jimson::Client.new("https://referencelayoutitemsv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
-          logger.info("GET ReferenceLayoutItemsV1")
+          logger.info("POST ReferenceLayoutItemsV1")
           raw_result = client.ReferenceLayoutItemsV1(credentials)
           logger.debug("Result: #{raw_result}")
           raw_result
@@ -81,7 +81,7 @@ module Atleisure
         'Price' => price || ''
       }
 
-      logger.info("GET CheckAvailabilityV1")
+      logger.info("POST CheckAvailabilityV1 #{params}")
       raw_result = client.CheckAvailabilityV1(params.merge(credentials))
       logger.debug("Result: #{raw_result}")
       result = {
@@ -109,7 +109,7 @@ module Atleisure
         'CustomerCountry' => customer_country_code
       }
 
-      logger.info("GET BookingAdditionsV1")
+      logger.info("POST BookingAdditionsV1 #{params}")
       raw_result = client.BookingAdditionsV1(params.merge(credentials))
       logger.debug("Result: #{raw_result}")
       raw_result
@@ -149,7 +149,7 @@ module Atleisure
       params.delete_if { |k,v| v.nil? }
 
       begin
-        logger.info("GET PlaceBookingV1")
+        logger.info("POST PlaceBookingV1")
         raw_result = client.PlaceBookingV1(params)
         logger.info("Result: #{raw_result}")
         result = {}
@@ -165,7 +165,7 @@ module Atleisure
       params = {
         'BookingNumber' => booking_number
       }
-      logger.info("GET DetailsOfOneBookingV1")
+      logger.info("POST DetailsOfOneBookingV1 #{params}")
       raw_result = client.DetailsOfOneBookingV1(params.merge(credentials))
       logger.debug("Result: #{raw_result}")
       raw_result

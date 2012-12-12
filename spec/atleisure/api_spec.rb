@@ -7,6 +7,7 @@ describe Atleisure::API do
       @mock_client = double('Jimson::Client')
       Jimson::Client.stub(:new).and_return(@mock_client)
       @api = Atleisure::API.new('dummy', 'pass')
+      #@api.logger = Logger.new("./bla.log")
     end
 
     describe "#place_booking" do
