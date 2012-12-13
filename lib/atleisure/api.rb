@@ -156,6 +156,7 @@ module Atleisure
         raw_result.each{|k,v| result[underscore(k)] = v}
         symbolize_keys!(result)
       rescue Jimson::Client::Error::ServerError => e
+        logger.error("Error: #{e.message}")
         {error: e.message}
       end
     end
