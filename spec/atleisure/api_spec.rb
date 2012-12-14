@@ -50,14 +50,22 @@ describe Atleisure::API do
           ['NL', 'NL'],
           ['fasdfsadf', 'EN'], ['', 'EN'], [nil, 'EN']
         ].each do |lan_str, expected_locale|
-          @mock_client.should_receive('PlaceBookingV1') do |params|
+          catch_place_booking_call do |params|
             locale = params['CustomerLanguage']
-            expect(locale).to(eq(expected_locale), "#{lan_str} => #{locale} != #{expected_locale}")
-            {}
+            expect(locale).to(eq(expected_locale), "#{lan_str} => #{expected_locale} != #{locale}")
           end
           @customer[:language] = lan_str
           @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
         end
+      end
+
+      it "makes sure the Surname is at least 2 char long" do
+        catch_place_booking_call do |params|
+          surname = params['CustomerSurname']
+          expect(surname).to(eq('G.'))
+        end
+        @customer[:surname] = 'G'
+        @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
       end
 
       it "formats the response" do
@@ -72,6 +80,13 @@ describe Atleisure::API do
           first_term_amount: 180.0,
           web_partner_commission_base: 0.0,
           web_partner_booking_code: '123')
+      end
+    end
+
+    def catch_place_booking_call
+      @mock_client.should_receive('PlaceBookingV1') do |params|
+        yield(params)
+        {}
       end
     end
   end

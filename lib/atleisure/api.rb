@@ -133,13 +133,13 @@ module Atleisure
       }
 
       customer_params = {
-        'CustomerSurname' => customer[:surname],
+        'CustomerSurname' => pad_customer_surname(customer[:surname]),
         'CustomerInitials' => customer[:initials],
         'CustomerStreet' => customer[:street],
         'CustomerHouseNumber' => customer[:house_number],
         'CustomerZipCode' => customer[:postal_code],
         'CustomerCity' => customer[:city],
-        'CustomerCountry' => customer[:country],
+        'CustomerCountry' => customer[:country] || "US",
         'CustomerTelephone1Number' => customer[:phone_number],
         'CustomerEmail' => customer[:email],
         'CustomerLanguage' => guess_customer_locale(customer[:language])
@@ -174,6 +174,21 @@ module Atleisure
 
     protected
 
+    def credentials
+      { 'WebpartnerCode' => @user,
+        'WebpartnerPassword' => @password }
+    end
+
+    def pad_customer_surname(surname)
+      if surname.nil? || surname.length.zero?
+        "Guest"
+      elsif surname.length == 1
+        surname + "."
+      else
+        surname
+      end
+    end
+
     def guess_customer_locale(language)
       languages = %w(NL FR DE EN IT ES PL)
 
@@ -199,11 +214,6 @@ module Atleisure
       end
     end
 
-    def credentials
-      { 'WebpartnerCode' => @user,
-        'WebpartnerPassword' => @password }
-    end
-
     def retry_times(max_retries)
       retries_left = max_retries
       begin
@@ -211,7 +221,7 @@ module Atleisure
       rescue Exception => e
         if retries_left > 0
           retries_left -= 1
-          puts "WARNING: Retrying - #{e.inspect}"
+          logger.warn "WARNING: Retrying - #{e.inspect}"
           retry
         else
           raise
