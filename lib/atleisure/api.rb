@@ -152,12 +152,13 @@ module Atleisure
         logger.info("POST PlaceBookingV1")
         raw_result = client.PlaceBookingV1(params)
         logger.info("Result: #{raw_result}")
+      rescue Exception => e
+        logger.error("Error: #{e.message}")
+        {error: e.message}
+      else
         result = {}
         raw_result.each{|k,v| result[underscore(k)] = v}
         symbolize_keys!(result)
-      rescue Jimson::Client::Error::ServerError => e
-        logger.error("Error: #{e.message}")
-        {error: e.message}
       end
     end
 
