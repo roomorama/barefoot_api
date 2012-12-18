@@ -145,12 +145,12 @@ module Atleisure
         'CustomerLanguage' => guess_customer_locale(customer[:language])
       }
 
-      params.merge!(customer_params).merge!(credentials)
+      params.merge!(customer_params)
       params.delete_if { |k,v| v.nil? }
 
       begin
-        logger.info("POST PlaceBookingV1")
-        raw_result = client.PlaceBookingV1(params)
+        logger.info("POST PlaceBookingV1 #{params}")
+        raw_result = client.PlaceBookingV1(params.merge(credentials))
         logger.info("Result: #{raw_result}")
       rescue Exception => e
         logger.error("Error: #{e.message}")
