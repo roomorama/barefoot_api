@@ -5,6 +5,16 @@ module Atleisure
   class API
     include CoreExtensions
 
+    def self.mode=(mode)
+      @@mode = mode
+    end
+
+    def self.mode
+      @@mode
+    end
+
+    self.mode = :test
+
     attr_accessor :logger
 
     def initialize(user, password)
@@ -118,6 +128,8 @@ module Atleisure
     def place_booking(house_code, start_date, end_date, number_of_guests, customer, price, inquiry_id)
       client = Jimson::Client.new("https://placebookingv1.jsonrpc-partner.net/cgi/lars/jsonrpc-partner/jsonrpc.htm")
 
+      test_mode = (self.class.mode == :production)? 'No' : 'Yes'
+
       params = {
         'WebpartnerBookingCode' => inquiry_id,
         'BookingOrOption' => 'Booking',
@@ -129,7 +141,7 @@ module Atleisure
         'NumberOfBabies' => '0',
         'NumberOfPets' => '0',
         'WebsiteRentPrice' => price,
-        'Test' => 'Yes'
+        'Test' => test_mode
       }
 
       customer_params = {
@@ -152,7 +164,7 @@ module Atleisure
         logger.info("POST PlaceBookingV1 #{params}")
         raw_result = client.PlaceBookingV1(params.merge(credentials))
         logger.info("Result: #{raw_result}")
-      rescue Exception => e
+      rescue Jimson::Client::Error::ServerError, Errno::ECONNREFUSED => e
         logger.error("Error: #{e.message}")
         {error: e.message}
       else

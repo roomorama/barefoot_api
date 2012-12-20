@@ -81,11 +81,36 @@ describe Atleisure::API do
           web_partner_commission_base: 0.0,
           web_partner_booking_code: '123')
       end
+
+      it "defaults to test mode" do
+        catch_place_booking_call do |params|
+          expect(params['Test']).to eq('Yes')
+        end
+
+        @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
+      end
+
+      context "Production mode" do
+        before do
+          Atleisure::API.mode = :production
+        end
+
+        after do
+          Atleisure::API.mode = :test
+        end
+
+        it "creates real bookings" do
+          catch_place_booking_call do |params|
+            expect(params['Test']).to eq('No')
+          end
+          @api.place_booking('XX-1234-02', @start_date, @end_date, 3, @customer, 100, 123)
+        end
+      end
     end
 
-    def catch_place_booking_call
+    def catch_place_booking_call(&block)
       @mock_client.should_receive('PlaceBookingV1') do |params|
-        yield(params)
+        block.call(params)
         {}
       end
     end
