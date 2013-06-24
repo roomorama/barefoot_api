@@ -1,4 +1,4 @@
-module Atleisure
+module Barefoot
   module CoreExtensions
     def symbolize_keys(hash)
       new_hash = {}
