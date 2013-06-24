@@ -78,6 +78,20 @@ module Barefoot
       end
     end
 
+    def is_property_available(property_id, start_date, end_date)
+      response = client.request 'IsPropertyAvailability'  do
+        http.headers["SOAPAction"] = "http://www.barefoot.com/Services/IsPropertyAvailability"
+        soap.body = credentials.merge(
+          'propertyId' => property_id,
+          'date1' => start_date.to_date.to_s,
+          'date2' => end_date.to_date.to_s,
+          )
+      end
+      if response.success?
+        response[:is_property_availability_response][:is_property_availability_result] rescue false
+      end
+    end
+
     #def check_availability(house_code, start_date, end_date, price = nil)
     #end
 
