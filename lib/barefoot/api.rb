@@ -36,7 +36,7 @@ module Barefoot
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/GetProperty"
         soap.body = credentials
       end
-
+      logger.debug("Result: #{response.inspect}")
       if response.success?
         properties_xml = response[:get_property_response][:get_property_result]
         properties = Nori.parse(properties_xml)[:property_list][:property] rescue []
@@ -44,10 +44,12 @@ module Barefoot
     end
 
     def get_availabilities(property_id)
+      logger.info("POST GetPropertyPartnerRent")
       response = client.request 'GetPropertyPartnerRent'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/GetPropertyPartnerRent"
         soap.body = credentials.merge('propertyId' => property_id)
       end
+      logger.debug("Result: #{response.inspect}")
       if response.success?
         availabilities = response[:get_property_partner_rent_response][:get_property_partner_rent_result][:diffgram][:property][:property_rent] rescue []
         availabilities
@@ -55,10 +57,12 @@ module Barefoot
     end
 
     def get_unavailable_dates(property_id)
+      logger.info("POST GetPropertyBookingDate")
       response = client.request 'GetPropertyBookingDate'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/GetPropertyBookingDate"
         soap.body = credentials.merge('propertyId' => property_id)
       end
+      logger.debug("Result: #{response.inspect}")
       if response.success?
         availabilities = response[:get_property_booking_date_response][:get_property_booking_date_result][:diffgram][:new_data_set][:table] rescue []
         availabilities = [availabilities] if availabilities.kind_of?(Hash)
@@ -67,10 +71,12 @@ module Barefoot
     end
 
     def get_images(property_id)
+      logger.info("POST GetPropertyAllImgs")
       response = client.request 'GetPropertyAllImgs'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/GetPropertyAllImgs"
         soap.body = credentials.merge('propertyId' => property_id)
       end
+      logger.debug("Result: #{response.inspect}")
       if response.success?
         images = response[:get_property_all_imgs_response][:get_property_all_imgs_result][:diffgram][:property][:property_img] rescue []
         images = [images] if images.kind_of?(Hash)
@@ -79,6 +85,7 @@ module Barefoot
     end
 
     def is_property_available(property_id, start_date, end_date)
+      logger.info("POST GetProperty")
       response = client.request 'IsPropertyAvailability'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/IsPropertyAvailability"
         soap.body = credentials.merge(
@@ -87,6 +94,7 @@ module Barefoot
           'date2' => end_date.to_date.to_s,
           )
       end
+      logger.debug("Result: #{response.inspect}")
       if response.success?
         response[:is_property_availability_response][:is_property_availability_result] rescue false
       end
