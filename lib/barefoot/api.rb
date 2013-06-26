@@ -90,8 +90,8 @@ module Barefoot
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/IsPropertyAvailability"
         soap.body = credentials.merge(
           'propertyId' => property_id,
-          'date1' => start_date.to_date.to_s,
-          'date2' => end_date.to_date.to_s,
+          'date1' => start_date.to_date.strftime "%m/%d/%Y",
+          'date2' => end_date.to_date.strftime "%m/%d/%Y"
           )
       end
       logger.debug("Result: #{response.inspect}")
