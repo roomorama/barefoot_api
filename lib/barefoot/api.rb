@@ -90,13 +90,35 @@ module Barefoot
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/IsPropertyAvailability"
         soap.body = credentials.merge(
           'propertyId' => property_id,
-          'date1' => start_date.to_date.strftime "%m/%d/%Y",
-          'date2' => end_date.to_date.strftime "%m/%d/%Y"
+          'date1' => start_date.to_date.strftime("%m/%d/%Y"),
+          'date2' => end_date.to_date.strftime("%m/%d/%Y")
           )
       end
       logger.debug("Result: #{response.inspect}")
       if response.success?
         response[:is_property_availability_response][:is_property_availability_result] rescue false
+      end
+    end
+
+    def get_quote(property_id, start_date, end_date, guests)
+      partneridx = @partneridx
+      logger.info("POST GetQuoteRatesDetail")
+      response = client.request 'GetQuoteRatesDetail'  do
+        http.headers["SOAPAction"] = "http://www.barefoot.com/Services/GetQuoteRatesDetail"
+        soap.body = credentials.merge(
+          'propertyId' => property_id,
+          'strADate' => start_date.to_date.strftime("%m/%d/%Y"),
+          'strDDate' => end_date.to_date.strftime("%m/%d/%Y"),
+          'num_adult' => guests,
+          'num_pet' => 0,
+          'num_baby' => 0,
+          'num_child' => 0,
+          'reztypeid' => partneridx
+        )
+      end
+      logger.debug("Result: #{response.inspect}")
+      if response.success?
+        Nori.parse(response[:get_quote_rates_detail_response][:get_quote_rates_detail_result])[:propertyratesdetails] rescue false
       end
     end
 
