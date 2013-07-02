@@ -37,12 +37,37 @@ describe Barefoot::API do
         postal_code: '069935',
         country: 'Singapore',
         phone_number: '+65 6534 2312',
-        email: "barefoot2@roomorama.com"
+        email: "barefoot@roomorama.com"
       }
       r = @api.set_consumer_info(customer)
 
       debugger
       puts r.inspect
+    end
+
+    it "created full booking" do
+      d1 = Date.today + 30
+      d2 = d1 + 10
+      # r = @api.create_quote(7520, d1, d2, 2)
+      # quote_id = r[:quote_info][:leaseid]
+
+      # customer = {
+      #   first_name: 'Mr',
+      #   last_name: 'Test',
+      #   street_address: '115 Amoy St',
+      #   city: 'Singapore',
+      #   postal_code: '069935',
+      #   country: 'Singapore',
+      #   phone_number: '+65 6534 2312',
+      #   email: "barefoot@roomorama.com"
+      # }
+      # customer_id = @api.set_consumer_info(customer)
+
+      customer_id = 7771
+      quote_id = 9129
+      r = @api.property_booking(7520, d1, d2, customer_id, quote_id)
+      debugger
+      puts r
     end
   end
 end

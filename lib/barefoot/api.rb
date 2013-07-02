@@ -148,10 +148,7 @@ module Barefoot
       logger.info("POST SetConsumerInfo")
       response = client.request 'SetConsumerInfo'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/SetConsumerInfo"
-        params = credentials
-        params.delete('partneridx')
-        logger.info customer_params(customer)
-        soap.body = params.merge(
+        soap.body = credentials.merge(
           'Info' => {'string' => customer_params(customer)}
         )
       end
@@ -163,8 +160,28 @@ module Barefoot
       end
     end
 
-    #def place_booking(house_code, start_date, end_date, number_of_guests, customer, price, inquiry_id)
-    #end
+    def property_booking(property_id, start_date, end_date, customer_id, lease_id)
+      logger.info("POST PropertyBooking")
+      response = client.request 'PropertyBooking'  do
+        http.headers["SOAPAction"] = "http://www.barefoot.com/Services/PropertyBooking"
+        soap.body = credentials.merge(
+          'Info' => {'string' => booking_params(property_id, start_date, end_date, customer_id, lease_id)}
+        )
+      end
+      logger.debug("Result: #{response.inspect}")
+      if response.success?
+        result = responseresponse[:property_booking_response][:property_booking_result] rescue false
+        result
+      end
+    end
+
+    def booking_flow
+      #quote_id = CreateQuoteByReztypeid
+      #quote_id = r[:quote_info][:leaseid]
+      #consumer_id = SetConsumerInfo
+      #SetCommentsInfo(consumer_id)
+      #PropertyBooking(quote_id, consumer_id, ...)
+    end
 
     protected
 
@@ -197,40 +214,34 @@ module Barefoot
       info
     end
 
-    def pad_customer_surname(surname)
-      if surname.nil? || surname.length.zero?
-        "Guest"
-      elsif surname.length == 1
-        surname + "."
-      else
-        surname
-      end
+    def booking_params(property_id, start_date, end_date, customer_id, lease_id)
+      #isTest,strPayment,EzicAccount,propertyId,strADate,strDDate,tid,leaseid,cctranstype,cFName,cLName,
+      #EzicTag,EzicTranstype,EzicPaytype,cardNum,expireMonth,expireYear,cvv,ccratetype,cctype
+      # optional: street, city, state, zip, country
+
+      test_mode = (self.class.mode != :production)
+      info = []
+      info << test_mode # isTest
+      info << "0" # strAmount
+      info << "" # EzicAccount
+      info << property_id.to_s # propertyId
+      info << start_date.to_date.strftime("%m/%d/%Y") # strADate
+      info << end_date.to_date.strftime("%m/%d/%Y") # strDDate
+      info << customer_id.to_s # tid
+      info << lease_id.to_s # leaseid
+      info << "" #cctranstype (empty if no EZIC)
+      info << "Roomorama" # cFName
+      info << "Payments" # cLName
+      info << "" # EzicTag (empty if no EZIC)
+      info << "S" # EzicTranstype
+      info << "C" # EzicPaytype
+      info << "" # carNum (test mode)
+      info << "" # expireMonth (test mode)
+      info << "" # expireYear (test mode)
+      info << "" # cvv (test mode)
+      info << "" # ccratetype (test mode)
+      info << "" # cctype (test mode)
+      info
     end
-
-    def guess_customer_locale(language)
-      languages = %w(NL FR DE EN IT ES PL)
-
-      # Valid values
-      if language && languages.include?(language.upcase)
-        return language.upcase
-      end
-
-      # Try to guess
-      case language
-        when /^en/i
-          'EN'
-        when /^it/i
-          'IT'
-        when /^es/i
-          'ES'
-        when /^fr/i
-          'FR'
-        when /^de/i
-          'DE'
-        else
-          'EN'
-      end
-    end
-
   end
 end
