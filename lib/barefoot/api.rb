@@ -85,7 +85,7 @@ module Barefoot
     end
 
     def is_property_available(property_id, start_date, end_date)
-      logger.info("POST GetProperty")
+      logger.info("POST IsPropertyAvailability")
       response = client.request 'IsPropertyAvailability'  do
         http.headers["SOAPAction"] = "http://www.barefoot.com/Services/IsPropertyAvailability"
         soap.body = credentials.merge(
@@ -122,8 +122,46 @@ module Barefoot
       end
     end
 
-    #def check_availability(house_code, start_date, end_date, price = nil)
-    #end
+    def create_quote(property_id, start_date, end_date, guests)
+      partneridx = @partneridx
+      logger.info("POST CreateQuoteByReztypeid")
+      response = client.request 'CreateQuoteByReztypeid'  do
+        http.headers["SOAPAction"] = "http://www.barefoot.com/Services/CreateQuoteByReztypeid"
+        soap.body = credentials.merge(
+          'propertyId' => property_id,
+          'strADate' => start_date.to_date.strftime("%m/%d/%Y"),
+          'strDDate' => end_date.to_date.strftime("%m/%d/%Y"),
+          'num_adult' => guests,
+          'num_pet' => 0,
+          'num_baby' => 0,
+          'num_child' => 0,
+          'reztypeid' => partneridx
+        )
+      end
+      logger.debug("Result: #{response.inspect}")
+      if response.success?
+        Nori.parse(response[:create_quote_by_reztypeid_response][:create_quote_by_reztypeid_result])[:output_list] rescue false
+      end
+    end
+
+    def set_consumer_info(customer)
+      logger.info("POST SetConsumerInfo")
+      response = client.request 'SetConsumerInfo'  do
+        http.headers["SOAPAction"] = "http://www.barefoot.com/Services/SetConsumerInfo"
+        params = credentials
+        params.delete('partneridx')
+        logger.info customer_params(customer)
+        soap.body = params.merge(
+          'Info' => {'string' => customer_params(customer)}
+        )
+      end
+      logger.debug("Result: #{response.inspect}")
+      if response.success?
+        info_id = response[:set_consumer_info_response][:set_consumer_info_result].to_i rescue false
+        info_id = false if info_id == 0
+        info_id
+      end
+    end
 
     #def place_booking(house_code, start_date, end_date, number_of_guests, customer, price, inquiry_id)
     #end
@@ -137,6 +175,26 @@ module Barefoot
         'barefootAccount' => @account,
         'partneridx' => @partneridx
       }
+    end
+
+    def customer_params(customer)
+      info = []
+      info << customer[:street_address] # street1
+      info << '' # street2
+      info << customer[:city] # city
+      info << '' # state
+      info << customer[:postal_code] # zip
+      info << customer[:country] # country
+      info << customer[:last_name] # lastname
+      info << customer[:first_name] # firstname
+      info << customer[:phone_number] # homephone
+      info << '' # bizphone
+      info << '' # fax
+      info << '' # mobile
+      info << customer[:email] # email (Required)
+      info << '0' # PropertyID
+      #info << 'Roomorama.com' # SourceOfBusiness
+      info
     end
 
     def pad_customer_surname(surname)
